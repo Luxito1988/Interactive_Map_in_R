@@ -1,0 +1,83 @@
+---
+title: "Project"
+author: "Luis Valladares"
+date: "13 de julio de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r Peru, cache = TRUE}
+library(leaflet)
+library(geojsonio)
+library(rgdal)
+url <- "https://raw.githubusercontent.com/juaneladio/peru-geojson/master/peru_departamental_simple.geojson"
+
+Peru_map <- geojson_read(url, what = "sp")
+
+regiones <- data.frame(dep = c("Amazonas", "Ancash", "Apurimac", "Arequipa", "Ayacucho", "Cajamarca",
+                         "Callao", "Cusco", "Huancavelica", "Huanuco", "Ica", "Junin",
+                         "La Libertad", "Lambayeque", "Lima", "Loreto", "Madre de Dios", "Moquegua",
+                         "Pasco", "Piura", "Puno", "San Martin", "Tacna", "Tumbes", "Ucayali"),
+                  
+                  pop = c(423122, 1154721, 460652, 1317279, 696149, 1821212,
+                          1194989, 1324989, 498278, 866234, 794372, 1490091,
+                          2112100, 1600121, 11102110, 1119000, 140105, 182612,
+                          306988, 2005079, 1500200, 851520, 346583, 240638, 501664),
+                  
+                  col = c("lime", "#FFFF66", "orange", "#FFFF66", "orange", "orange",
+                          "#FFFF66", "orange", "orange", "orange", "#FFFF66", "orange",
+                          "#FFFF66", "#FFFF66", "#FFFF66", "lime", "lime", "#FFFF66",
+                          "orange", "#FFFF66", "orange", "lime", "#FFFF66", "#FFFF66", "lime"),
+                  
+                  colcircles = c("green", "#666600", "red", "#666600", "red", "red",
+                           "#666600", "red", "red", "red", "#666600", "red",
+                           "#666600", "#666600", "#666600", "green", "green", "#666600",
+                           "red", "#666600", "red", "green", "#666600", "#666600", "green"),
+                       
+                  lat = c(-5.1151, -9.3250, -14.0505, -16.3988, -13.1639, -7.1621,                                                       -12.0508, -13.5250, -12.7862, -9.9298, -14.0639, -11.3358,
+                          -8.1436, -6.4777, -11.4950, -4.2325, -11.7669, -17.1940, 
+                          -10.4476, -5.1853, -15.8433, -7.2445, -18.0176, -3.5667, -9.8251),
+                 
+                  lng = c(-78.1108, -77.5619, -73.0877, -71.5369, -74.2236, -78.5106,
+                          -77.1260, -71.9722, -74.9764, -76.2433, -75.7440, -75.3412,
+                          -78.4752, -79.9193, -77.2077, -74.2179, -70.8120, -70.9312,
+                          -75.1545, -80.6490, -70.0236, -76.8260, -70.2510, -80.4500, -73.0877),
+
+                  stringsAsFactors = FALSE)
+```
+
+```{r Icon, cache = TRUE}
+PeruIcon <- makeIcon(
+        iconUrl = "http://flags.fmcdn.net/data/flags/w580/pe.png",
+        iconWidth = 40, iconHeight = 20,
+        iconAnchorX = 35, iconAnchorY = 18
+)
+```
+
+
+```{r Map}
+Peru_map %>%
+        leaflet() %>% addTiles() %>% setView(lat = -10, lng = -76, zoom = 5) %>%
+        addMarkers(lat = -3.5, lng = -74.8, icon = PeruIcon, label = ~paste0("PERU: ", formatC(sum(regiones$pop), 
+                     digits = 10, big.mark = ","), " people"), labelOptions = labelOptions(textsize = "15px")) %>%
+        addPolygons(stroke = TRUE, weight = 2, color = "black", smoothFactor = 0.3, fillOpacity = 0.8, 
+                     fillColor = regiones$col, label = ~paste0(regiones$dep, ": ", formatC(regiones$pop, 
+                     digits = 9, big.mark = ","), " people"), highlight = highlightOptions(weight = 5,
+                     bringToFront = TRUE, sendToBack = TRUE ), labelOptions = labelOptions(textsize = "12px"),
+                     popup = regiones$dep) %>%
+        addCircleMarkers(lat = regiones$lat, lng = regiones$lng, weight = 6, radius = sqrt(regiones$pop)/120, 
+                         color = regiones$colcircles, clusterOptions = markerClusterOptions()) %>%
+        addLabelOnlyMarkers(data = regiones, lng = ~lng, lat = ~lat, label = ~dep,
+                            labelOptions = labelOptions(noHide = TRUE, direction = 'center', textOnly = TRUE)) %>%
+        addLegend(labels = c("Coast", "Mountain", "Jungle"), position = "bottomleft" , colors = c("#FFFF66",
+                  "orange", "lime"), opacity = 0.8, title = paste("Traditional Regions<br><center>of Peru"))
+                  
+#'#FFCCCC'
+```
+
